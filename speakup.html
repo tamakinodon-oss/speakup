@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SpeakUp – English Practice</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{min-height:100vh;background:#0a0a0f;font-family:'Segoe UI',sans-serif;color:#e8e8f0;display:flex;flex-direction:column;align-items:center}
+  header{width:100%;max-width:720px;padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between}
+  main{width:100%;max-width:720px;padding:24px;flex:1;display:flex;flex-direction:column}
+  button{font-family:inherit}
+
+  /* Level select */
+  .hero{text-align:center;margin-bottom:40px}
+  .hero h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-1.5px;line-height:1.1}
+  .hero p{color:#888;margin-top:14px;font-size:15px}
+  .section-label{color:#666;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+  .level-btn{background:#111118;border:1.5px solid #ffffff18;border-radius:16px;padding:20px 24px;cursor:pointer;display:flex;align-items:center;gap:16px;text-align:left;transition:all .18s;color:#e8e8f0;width:100%;margin-bottom:12px}
+  .level-btn:hover{border-color:var(--c);background:color-mix(in srgb,var(--c) 5%,transparent)}
+  .level-icon{width:48px;height:48px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;background:color-mix(in srgb,var(--c) 13%,transparent);border:1.5px solid color-mix(in srgb,var(--c) 35%,transparent)}
+  .level-name{font-weight:700;font-size:17px}
+  .level-desc{color:#888;font-size:13px;margin-top:2px}
+  .arrow{margin-left:auto;color:#444;font-size:18px}
+  .info-box{margin-top:28px;padding:18px;border-radius:14px;background:#0d1520;border:1px solid #1a2a3a;color:#6aa;font-size:13px;line-height:1.7}
+
+  /* Topic grid */
+  .back-btn{background:none;border:none;color:#888;cursor:pointer;font-size:14px;padding:0 0 20px;display:flex;align-items:center;gap:6px}
+  .topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .topic-btn{background:#111118;border:1.5px solid #ffffff18;border-radius:14px;padding:20px 18px;cursor:pointer;text-align:left;color:#e8e8f0;transition:all .18s;font-size:14px;font-weight:600}
+  .topic-btn:hover{border-color:var(--c);background:color-mix(in srgb,var(--c) 5%,transparent)}
+  .topic-icon{font-size:28px;margin-bottom:10px}
+
+  /* Chat */
+  .chat-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+  .messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding-bottom:16px;max-height:calc(100vh - 310px)}
+  .msg-row{display:flex;gap:10;align-items:flex-start}
+  .msg-row.user{flex-direction:row-reverse}
+  .avatar{width:32px;height:32px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;background:color-mix(in srgb,var(--c) 13%,transparent);border:1px solid color-mix(in srgb,var(--c) 27%,transparent)}
+  .bubble{border-radius:4px 16px 16px 16px;padding:12px 16px;max-width:78%;font-size:15px;line-height:1.6;background:#161620;border:1px solid #ffffff12;color:#dde}
+  .msg-row.user .bubble{border-radius:16px 4px 16px 16px;background:color-mix(in srgb,var(--c) 13%,transparent);border-color:color-mix(in srgb,var(--c) 27%,transparent);color:var(--c)}
+  .replay-btn{background:none;border:none;color:#666;cursor:pointer;font-size:13px;padding:0;vertical-align:middle;margin-left:6px}
+  .dots{display:flex;gap:4px}
+  .dot{width:6px;height:6px;border-radius:50%;background:color-mix(in srgb,var(--c) 53%,transparent);display:inline-block;animation:bounce 1s var(--d,0s) infinite}
+
+  /* Status bars */
+  .status-bar{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:10px;font-size:13px;margin-bottom:6px}
+  .status-speaking{background:color-mix(in srgb,var(--c) 7%,transparent);border:1px solid color-mix(in srgb,var(--c) 20%,transparent);color:var(--c)}
+  .status-listening{background:#ff444411;border:1px solid #ff444433;color:#ff8888}
+  .rec-dot{width:8px;height:8px;border-radius:50%;background:#ff4444;display:inline-block;animation:pulse 1s infinite}
+  .stop-btn{margin-left:auto;background:none;border:none;color:#888;cursor:pointer;font-size:12px}
+
+  /* Input bar */
+  .input-bar{background:#111118;border:1.5px solid #ffffff1a;border-radius:16px;padding:4px 4px 4px 16px;display:flex;align-items:flex-end;gap:8px;margin-top:4px}
+  textarea{flex:1;background:none;border:none;outline:none;color:#e8e8f0;font-size:15px;line-height:1.5;resize:none;padding:10px 0;font-family:inherit;max-height:120px;overflow-y:auto}
+  .mic-btn{width:44px;height:44px;border-radius:13px;flex-shrink:0;border:1.5px solid;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .15s;cursor:pointer}
+  .mic-btn.idle{background:color-mix(in srgb,var(--c) 13%,transparent);border-color:color-mix(in srgb,var(--c) 40%,transparent)}
+  .mic-btn.recording{background:radial-gradient(circle,#ff444488,#ff000066);border-color:#ff4444;animation:micPulse 1s infinite}
+  .send-btn{width:44px;height:44px;border-radius:13px;flex-shrink:0;border:none;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .15s;font-weight:700;cursor:pointer}
+  .hint{text-align:center;color:#444;font-size:12px;margin-top:6px}
+
+  /* Header chips */
+  .chip{background:color-mix(in srgb,var(--c) 13%,transparent);border:1px solid color-mix(in srgb,var(--c) 35%,transparent);color:var(--c);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600}
+  .header-btn{background:#ffffff0f;border:1px solid #ffffff22;color:#888;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer}
+  .logo{display:flex;align-items:center;gap:10px;cursor:pointer;background:none;border:none;color:#e8e8f0}
+  .logo-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+
+  .hidden{display:none}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 #ff444455}50%{box-shadow:0 0 0 10px #ff444400}}
+  ::-webkit-scrollbar{width:4px}
+  ::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <button class="logo" onclick="resetApp()">
+    <div class="logo-icon" id="logoIcon">🗣️</div>
+    <span style="font-weight:700;font-size:18px;letter-spacing:-.5px">Speak<span id="logoAccent" style="color:#4ade80">Up</span></span>
+  </button>
+  <div id="chatControls" class="hidden" style="display:flex;align-items:center;gap:8px">
+    <button id="speakToggle" class="header-btn" onclick="toggleAutoSpeak()">🔊</button>
+    <span id="levelChip" class="chip" style="--c:#4ade80"></span>
+    <button class="header-btn" onclick="resetApp()">← Back</button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- LEVEL SELECT -->
+  <div id="levelScreen">
+    <div class="hero">
+      <h1>Your English<br><span style="color:#4ade80">Practice Partner</span></h1>
+      <p>🎙️ Speak naturally · AI listens &amp; responds aloud</p>
+    </div>
+    <p class="section-label">Choose your level</p>
+    <button class="level-btn" style="--c:#4ade80" onclick="selectLevel('beginner','Beginner','🌱','#4ade80')">
+      <div class="level-icon">🌱</div>
+      <div><div class="level-name">Beginner</div><div class="level-desc">Simple words &amp; short sentences</div></div>
+      <span class="arrow">→</span>
+    </button>
+    <button class="level-btn" style="--c:#facc15" onclick="selectLevel('intermediate','Intermediate','🌿','#facc15')">
+      <div class="level-icon">🌿</div>
+      <div><div class="level-name">Intermediate</div><div class="level-desc">Everyday conversations</div></div>
+      <span class="arrow">→</span>
+    </button>
+    <button class="level-btn" style="--c:#f97316" onclick="selectLevel('advanced','Advanced','🌳','#f97316')">
+      <div class="level-icon">🌳</div>
+      <div><div class="level-name">Advanced</div><div class="level-desc">Complex topics &amp; nuance</div></div>
+      <span class="arrow">→</span>
+    </button>
+    <div class="info-box">
+      🎙️ このアプリはChromeで直接開いてください（ファイルをダブルクリック）。<br>
+      マイクボタンを押すと音声認識が始まります（Chrome標準機能・完全無料）。<br>
+      🔊 AIの返答は自動で読み上げられます。
+    </div>
+  </div>
+
+  <!-- TOPIC SELECT -->
+  <div id="topicScreen" class="hidden">
+    <button class="back-btn" onclick="showLevel()">← Back to levels</button>
+    <div style="margin-bottom:28px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <span id="topicLevelEmoji" style="font-size:24px"></span>
+        <h2 id="topicLevelName" style="font-weight:700;font-size:22px"></h2>
+      </div>
+      <p style="color:#888;font-size:14px">What would you like to talk about today?</p>
+    </div>
+    <div class="topic-grid" id="topicGrid"></div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chatScreen" class="hidden" style="display:flex;flex-direction:column;flex:1">
+    <div class="messages" id="messages"></div>
+    <div id="statusSpeaking" class="status-bar status-speaking hidden">
+      🔊 AI is speaking…
+      <button class="stop-btn" onclick="stopSpeak()">Stop ✕</button>
+    </div>
+    <div id="statusListening" class="status-bar status-listening hidden">
+      <span class="rec-dot"></span> Listening… tap 🎙️ again to send
+    </div>
+    <div class="input-bar">
+      <textarea id="txtInput" rows="1" placeholder="🎙️ Tap mic to speak, or type here…"
+        oninput="autoResize(this)"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendText()}"></textarea>
+      <button id="micBtn" class="mic-btn idle" onclick="handleMic()">🎙️</button>
+      <button id="sendBtn" class="send-btn" onclick="sendText()" style="background:#ffffff15;color:#555;cursor:not-allowed">↑</button>
+    </div>
+    <p class="hint">🎙️ Tap mic → speak → tap again to send &nbsp;·&nbsp; Or type + Enter</p>
+  </div>
+
+</main>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const TOPICS = {
+  beginner:[
+    {id:"self_intro",label:"Self Introduction",icon:"👋",prompt:"You are a friendly English teacher for complete beginners. Practice introducing themselves. Use very simple words and short sentences. Ask one question at a time. Correct mistakes gently. Keep responses under 3 sentences."},
+    {id:"daily_life",label:"Daily Routine",icon:"☀️",prompt:"You are a friendly English teacher for beginners. Practice daily routine vocabulary. Use simple present tense only. Ask one question at a time. Keep responses under 3 sentences."},
+    {id:"food",label:"Food & Drinks",icon:"🍱",prompt:"You are a friendly English teacher for beginners. Practice food vocabulary. Ask about favorite foods. Use simple words. Keep responses under 3 sentences."},
+    {id:"weather",label:"Weather",icon:"🌤️",prompt:"You are a friendly English teacher for beginners. Practice weather expressions. Ask simple questions. Keep responses under 3 sentences."},
+  ],
+  intermediate:[
+    {id:"travel",label:"Travel Plans",icon:"✈️",prompt:"You are an engaging English conversation partner for intermediate learners. Discuss travel. Naturally model correct grammar if mistakes are made. Responses: 2-4 sentences."},
+    {id:"movies",label:"Movies & TV",icon:"🎬",prompt:"You are a fun English conversation partner for intermediate learners. Chat about movies and TV. Weave corrections naturally. Responses: 2-4 sentences."},
+    {id:"work",label:"Work & Career",icon:"💼",prompt:"You are a professional English conversation partner for intermediate learners. Discuss jobs and career goals. Responses: 2-4 sentences."},
+    {id:"hobbies",label:"Hobbies",icon:"🎨",prompt:"You are a friendly English conversation partner for intermediate learners. Chat about hobbies. Correct naturally. Responses: 2-4 sentences."},
+  ],
+  advanced:[
+    {id:"debate",label:"Debate & Opinion",icon:"🎤",prompt:"You are a sophisticated debate partner for advanced English learners. Challenge arguments respectfully. Responses: 3-5 sentences."},
+    {id:"culture",label:"Culture & Society",icon:"🌍",prompt:"You are an insightful conversation partner for advanced learners. Discuss cultural differences and global issues. Responses: 3-5 sentences."},
+    {id:"tech",label:"Technology & Future",icon:"🤖",prompt:"You are a knowledgeable conversation partner for advanced learners. Discuss technology and AI. Responses: 3-5 sentences."},
+    {id:"business",label:"Business & Economy",icon:"📈",prompt:"You are a sharp business conversation partner for advanced learners. Discuss markets and leadership. Responses: 3-5 sentences."},
+  ],
+};
+const SUFFIX = " Always respond in English only. Keep responses concise (2-4 sentences) since they will be read aloud. End with one follow-up question.";
+
+// ── STATE ─────────────────────────────────────────────────────────────
+let curLevel=null, curColor="#4ade80", curTopic=null;
+let messages=[], loading=false, autoSpeak=true, isListening=false;
+let recognition=null;
+
+// ── CSS VAR helper ────────────────────────────────────────────────────
+function setColor(c){
+  document.documentElement.style.setProperty('--c',c);
+  curColor=c;
+}
+
+// ── SCREENS ───────────────────────────────────────────────────────────
+function show(id){['levelScreen','topicScreen','chatScreen'].forEach(s=>document.getElementById(s).classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
+function showLevel(){show('levelScreen');document.getElementById('chatControls').classList.add('hidden')}
+
+function selectLevel(id,label,emoji,color){
+  curLevel={id,label,emoji,color};
+  setColor(color);
+  document.getElementById('topicLevelEmoji').textContent=emoji;
+  document.getElementById('topicLevelName').textContent=label+' Topics';
+  // build topic grid
+  const grid=document.getElementById('topicGrid');
+  grid.innerHTML='';
+  TOPICS[id].forEach(t=>{
+    const btn=document.createElement('button');
+    btn.className='topic-btn';
+    btn.style.setProperty('--c',color);
+    btn.innerHTML=`<div class="topic-icon">${t.icon}</div><div>${t.label}</div>`;
+    btn.onclick=()=>selectTopic(t);
+    grid.appendChild(btn);
+  });
+  show('topicScreen');
+}
+
+function selectTopic(t){
+  curTopic=t;
+  messages=[];
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('levelChip').textContent=curLevel.label+' · '+t.label;
+  document.getElementById('levelChip').style.setProperty('--c',curColor);
+  document.getElementById('logoIcon').style.background=`linear-gradient(135deg,${curColor}33,${curColor}88)`;
+  document.getElementById('logoIcon').style.border=`1.5px solid ${curColor}66`;
+  document.getElementById('logoAccent').style.color=curColor;
+  document.getElementById('chatControls').classList.remove('hidden');
+  show('chatScreen');
+  startConversation(t);
+}
+
+function resetApp(){
+  stopSpeak(); stopListening();
+  curLevel=null; curTopic=null; messages=[];
+  document.getElementById('messages').innerHTML='';
+  document.getElementById('txtInput').value='';
+  setSendEnabled(false);
+  showLevel();
+}
+
+// ── CLAUDE API ────────────────────────────────────────────────────────
+async function callClaude(history){
+  const res=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:curTopic.prompt+SUFFIX,messages:history})
+  });
+  const d=await res.json();
+  return d.content?.find(b=>b.type==="text")?.text||"Could you say that again?";
+}
+
+async function startConversation(t){
+  setLoading(true);
+  try{
+    const reply=await callClaude([{role:"user",content:`Greet the student warmly and ask your first question about "${t.label}".`}]);
+    addMessage("assistant",reply);
+    if(autoSpeak) doSpeak(reply);
+  }catch{
+    addMessage("assistant","Hello! Let's practice English together!");
+  }
+  setLoading(false);
+}
+
+async function sendText(textOverride){
+  const txt=(textOverride||document.getElementById('txtInput').value).trim();
+  if(!txt||loading) return;
+  stopSpeak();
+  addMessage("user",txt);
+  document.getElementById('txtInput').value='';
+  setSendEnabled(false);
+  setLoading(true);
+
+  // build history (skip first assistant greeting)
+  const hist=[];
+  let skip=true;
+  for(const m of messages){
+    if(skip&&m.role==="assistant"){skip=false;continue;}
+    hist.push({role:m.role,content:m.content});
+  }
+  try{
+    const reply=await callClaude(hist.length?hist:[{role:"user",content:txt}]);
+    addMessage("assistant",reply);
+    if(autoSpeak) doSpeak(reply);
+  }catch{
+    addMessage("assistant","Sorry, connection error. Please try again!");
+  }
+  setLoading(false);
+}
+
+// ── MESSAGES ──────────────────────────────────────────────────────────
+function addMessage(role,content){
+  messages.push({role,content});
+  const box=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.className='msg-row'+(role==='user'?' user':'');
+
+  if(role==='assistant'){
+    const av=document.createElement('div');
+    av.className='avatar';
+    av.style.setProperty('--c',curColor);
+    av.textContent='🤖';
+    row.appendChild(av);
+  }
+
+  const bub=document.createElement('div');
+  bub.className='bubble';
+  bub.style.setProperty('--c',curColor);
+  bub.textContent=content;
+
+  if(role==='assistant'){
+    const rb=document.createElement('button');
+    rb.className='replay-btn';
+    rb.textContent='🔉';
+    rb.title='Read aloud';
+    rb.onclick=()=>{stopSpeak();doSpeak(content);};
+    bub.appendChild(rb);
+  }
+  row.appendChild(bub);
+  box.appendChild(row);
+  box.scrollTop=box.scrollHeight;
+}
+
+function showTyping(){
+  const box=document.getElementById('messages');
+  const row=document.createElement('div');
+  row.className='msg-row';row.id='typingRow';
+  const av=document.createElement('div');av.className='avatar';av.style.setProperty('--c',curColor);av.textContent='🤖';
+  const bub=document.createElement('div');bub.className='bubble';bub.style.setProperty('--c',curColor);
+  bub.innerHTML='<div class="dots">'+[0,1,2].map(d=>`<span class="dot" style="--d:${d*0.2}s"></span>`).join('')+'</div>';
+  row.appendChild(av);row.appendChild(bub);box.appendChild(row);
+  box.scrollTop=box.scrollHeight;
+}
+function hideTyping(){document.getElementById('typingRow')?.remove();}
+
+function setLoading(v){
+  loading=v;
+  if(v) showTyping(); else hideTyping();
+}
+
+// ── TTS ───────────────────────────────────────────────────────────────
+function doSpeak(text){
+  const synth=window.speechSynthesis;
+  if(!synth) return;
+  synth.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=0.93;u.pitch=1.05;
+  const voices=synth.getVoices();
+  const pick=voices.find(v=>['Samantha','Google US English','Karen','Daniel'].some(n=>v.name.includes(n))&&v.lang.startsWith('en'))
+    ||voices.find(v=>v.lang==='en-US');
+  if(pick) u.voice=pick;
+  u.onstart=()=>document.getElementById('statusSpeaking').classList.remove('hidden');
+  u.onend=u.onerror=()=>document.getElementById('statusSpeaking').classList.add('hidden');
+  synth.speak(u);
+}
+function stopSpeak(){
+  window.speechSynthesis?.cancel();
+  document.getElementById('statusSpeaking').classList.add('hidden');
+}
+function toggleAutoSpeak(){
+  autoSpeak=!autoSpeak;
+  document.getElementById('speakToggle').textContent=autoSpeak?'🔊':'🔇';
+  if(!autoSpeak) stopSpeak();
+}
+window.speechSynthesis?.addEventListener('voiceschanged',()=>window.speechSynthesis.getVoices());
+
+// ── SPEECH RECOGNITION ───────────────────────────────────────────────
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+function handleMic(){
+  if(!SR){alert('音声認識はChromeでのみ利用できます。\nPlease use Google Chrome.');return;}
+  if(isListening) stopListening();
+  else startListening();
+}
+
+function startListening(){
+  recognition=new SR();
+  recognition.lang='en-US';
+  recognition.interimResults=true;
+  recognition.continuous=false;
+
+  let finalText='';
+  recognition.onstart=()=>{
+    isListening=true;
+    document.getElementById('micBtn').classList.replace('idle','recording');
+    document.getElementById('statusListening').classList.remove('hidden');
+  };
+  recognition.onresult=e=>{
+    let interim='';
+    finalText='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) finalText+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    document.getElementById('txtInput').value=finalText||interim;
+    setSendEnabled(!!(finalText||interim));
+  };
+  recognition.onend=()=>{
+    isListening=false;
+    document.getElementById('micBtn').classList.replace('recording','idle');
+    document.getElementById('statusListening').classList.add('hidden');
+    if(finalText.trim()) sendText(finalText.trim());
+  };
+  recognition.onerror=e=>{
+    isListening=false;
+    document.getElementById('micBtn').classList.replace('recording','idle');
+    document.getElementById('statusListening').classList.add('hidden');
+    if(e.error==='not-allowed') alert('マイクへのアクセスが許可されていません。\nブラウザのアドレスバー横の🔒をクリックしてマイクを許可してください。');
+  };
+  recognition.start();
+}
+
+function stopListening(){
+  recognition?.stop();
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────────
+function setSendEnabled(v){
+  const btn=document.getElementById('sendBtn');
+  btn.style.background=v?curColor:'#ffffff15';
+  btn.style.color=v?'#000':'#555';
+  btn.style.cursor=v?'pointer':'not-allowed';
+}
+document.getElementById('txtInput').addEventListener('input',function(){setSendEnabled(!!this.value.trim());});
+
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
+</script>
+</body>
+</html>
